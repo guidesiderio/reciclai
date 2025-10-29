@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Recompensas</title>
+</head>
+<body>
+    <h1>Recompensas Disponíveis</h1>
+    <ul>
+        {% for reward in rewards %}
+            <li>
+                {{ reward.name }} - {{ reward.points_required }} pontos
+                <a href="{% url 'core:redeem_reward' reward.id %}">Resgatar</a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>

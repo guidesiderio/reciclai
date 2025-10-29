@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Coletas Disponíveis</title>
+</head>
+<body>
+    <h1>Coletas Disponíveis</h1>
+    <ul>
+        {% for collection in collections %}
+            <li>
+                {{ collection.residue.residue_type }} - {{ collection.residue.location }}
+                <a href="{% url 'core:accept_collection' collection.id %}">Aceitar</a>
+            </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
