@@ -4,6 +4,7 @@ import os
 import sys
 from pathlib import Path
 
+
 def main():
     """Run administrative tasks."""
     # Add the project's root directory to the Python path

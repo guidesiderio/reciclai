@@ -9,11 +9,15 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.0/howto/deployment/checklist/
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-y&5n_#z*q@$i_#(+d6o=6-2q1-8&d3#^#s8_@8p#z^t7h'
+# SECURITY: read secret key from environment in production; keep a
+# fallback for local dev
+SECRET_KEY = os.environ.get(
+    'DJANGO_SECRET_KEY',
+    'django-insecure-y&5n_#z*q@$i_#(+d6o=6-2q1-8&d3#^#s8_@8p#z^t7h')
 
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+# DEBUG should be disabled in production; set DJANGO_DEBUG env var to
+# 'False' there
+DEBUG = os.environ.get('DJANGO_DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*']
 
@@ -94,9 +98,9 @@ AUTH_PASSWORD_VALIDATORS = [
 # Internationalization
 # https://docs.djangoproject.com/en/5.0/topics/i18n/
 
-LANGUAGE_CODE = 'en-us'
+LANGUAGE_CODE = 'pt-br'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = 'America/Sao_Paulo'
 
 USE_I18N = True
 
@@ -117,4 +121,5 @@ LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = 'login'
 
-CSRF_TRUSTED_ORIGINS = [f"https://{os.environ.get('WEB_HOST')}"] if 'WEB_HOST' in os.environ else []
+CSRF_TRUSTED_ORIGINS = [
+    f"https://{os.environ.get('WEB_HOST')}"] if 'WEB_HOST' in os.environ else []

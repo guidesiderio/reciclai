@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class Profile(models.Model):
     USER_TYPE_CHOICES = (
         ('C', 'Cidadão'),
@@ -14,6 +15,7 @@ class Profile(models.Model):
     def __str__(self):
         return f'{self.user.username} - {self.get_user_type_display()}'
 
+
 class Residue(models.Model):
     STATUS_CHOICES = (
         ('A', 'Aguardando Coleta'),
@@ -22,13 +24,21 @@ class Residue(models.Model):
     )
     citizen = models.ForeignKey(User, on_delete=models.CASCADE)
     residue_type = models.CharField(max_length=100)
-    weight = models.DecimalField(max_digits=5, decimal_places=2, null=True, blank=True)
+    weight = models.DecimalField(
+        max_digits=5,
+        decimal_places=2,
+        null=True,
+        blank=True)
     units = models.IntegerField(null=True, blank=True)
     location = models.CharField(max_length=255)
-    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='A')
+    status = models.CharField(
+        max_length=1,
+        choices=STATUS_CHOICES,
+        default='A')
 
     def __str__(self):
         return f'{self.residue_type} - {self.citizen.username}'
+
 
 class Collection(models.Model):
     STATUS_CHOICES = (
@@ -40,11 +50,19 @@ class Collection(models.Model):
         ('X', 'Cancelada'),
     )
     residue = models.ForeignKey(Residue, on_delete=models.CASCADE)
-    collector = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
-    status = models.CharField(max_length=1, choices=STATUS_CHOICES, default='S')
+    collector = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True)
+    status = models.CharField(
+        max_length=1,
+        choices=STATUS_CHOICES,
+        default='S')
 
     def __str__(self):
         return f'{self.residue} - {self.get_status_display()}'
+
 
 class Reward(models.Model):
     name = models.CharField(max_length=100)
@@ -52,6 +70,7 @@ class Reward(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class UserReward(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
