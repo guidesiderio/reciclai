@@ -5,6 +5,7 @@ app_name = 'core'
 
 urlpatterns = [
     path('', views.index, name='index'),
+    path('signup/', views.signup, name='signup'),
     # URLs do Cidadão
     path('residue/create/', views.residue_create, name='residue_create'),
     path('collection/request/', views.collection_request, name='collection_request'),

@@ -1,9 +1,8 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Bem-vindo ao Reciclaí</title>
-</head>
-<body>
+{% extends 'base.html' %}
+
+{% block title %}Bem-vindo ao Reciclaí{% endblock %}
+
+{% block content %}
     <h1>Bem-vindo ao Reciclaí</h1>
 
     <h2>Cidadão</h2>
@@ -24,5 +23,4 @@
     <ul>
         <li><a href="{% url 'core:recycler_received' %}">Resíduos Recebidos</a></li>
     </ul>
-</body>
-</html>
+{% endblock %}

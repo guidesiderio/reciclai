@@ -1,11 +1,27 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import HttpResponse
 from django.contrib.auth.decorators import login_required
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth import login
 from .models import Residue, Collection, Reward, Profile, UserReward
 from .forms import CollectionStatusForm
 
 def index(request):
     return render(request, 'core/index.html')
+
+def signup(request):
+    if request.method == 'POST':
+        form = UserCreationForm(request.POST)
+        if form.is_valid():
+            user = form.save()
+            # Log in the user directly after signup
+            login(request, user)
+            # Create a profile for the new user
+            Profile.objects.create(user=user, user_type='C')
+            return redirect('core:index')
+    else:
+        form = UserCreationForm()
+    return render(request, 'registration/signup.html', {'form': form})
 
 # Views do Cidadão
 
@@ -26,7 +42,7 @@ def collection_status(request):
 
 @login_required
 def points_view(request):
-    profile = Profile.objects.get(user=request.user)
+    profile, created = Profile.objects.get_or_create(user=request.user, defaults={'user_type': 'C'})
     return render(request, 'core/points_view.html', {'profile': profile})
 
 @login_required
