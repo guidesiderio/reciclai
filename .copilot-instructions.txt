@@ -1,0 +1,70 @@
+# Contexto do Projeto: RecicleAí ♻️
+Este projeto é uma aplicação web desenvolvida em **Django**, chamada **RecicleAí**.
+
+## Objetivo
+Criar uma plataforma simples e funcional de reciclagem, com três papéis principais:
+
+1. **Cidadão**
+   - Cadastra resíduos (tipo, peso/unidades, localização)
+   - Solicita coletas
+   - Acompanha o status do processo
+   - Recebe pontos pelo descarte correto
+   - Troca pontos por recompensas dentro da plataforma
+
+2. **Coletor**
+   - Visualiza solicitações disponíveis
+   - Aceita ou se atribui coletas
+   - Atualiza o status da coleta:
+     Solicitada → Atribuída → Em rota → Coletada → Entregue ou Cancelada
+
+3. **Recicladora**
+   - Recebe os resíduos coletados
+   - Confere tipo e peso
+   - Registra o processamento
+   - Encerra o ciclo, liberando automaticamente os pontos ao cidadão
+
+## Regras Gerais
+- Quando a recicladora confirma o recebimento, o sistema:
+  - Atualiza o status do resíduo para “reciclado/entregue”
+  - Credita pontos ao cidadão
+- Todo o fluxo deve ser simples, rastreável e durável.
+- Evitar overengineering: foco em clareza, manutenção e uso de recursos nativos do Django.
+
+## Estrutura Esperada
+- Backend: Django (Models, Views, Templates ou DRF)
+- Banco: SQLite ou PostgreSQL
+- Pastas:
+  - `/core` → Configurações do projeto
+  - `/mysite` → Lógica principal (resíduos, coleta, pontuação)
+  - `/templates` → Interface simples
+  - `/docs` → Documentação do projeto (inclui plano_implementacao.md)
+
+## Instruções para o Copilot
+Você deve atuar como **revisor técnico e assistente de engenharia de software**.
+
+### Revisão de Código
+Ao revisar o código:
+- Verifique se o fluxo segue o propósito descrito acima.
+- Avalie clareza, simplicidade e aderência ao Django.
+- Aponte duplicações, más práticas, imports desnecessários e nomes confusos.
+- Sugira melhorias sem reescrever o projeto inteiro.
+- Priorize soluções nativas e sustentáveis (evite dependências desnecessárias).
+- Se houver ambiguidade, explique o problema e proponha uma alternativa clara.
+
+### Estilo de Código
+- Seguir PEP8.
+- Usar nomes consistentes e descritivos em inglês.
+- Comentários curtos e objetivos.
+- Prefira funções pequenas e bem delimitadas.
+- Evite lógica redundante nos views e forms.
+
+### Quando Criar Código Novo
+- Só gere código quando o usuário pedir explicitamente.
+- Antes de gerar algo, explique em poucas linhas o raciocínio da implementação.
+
+### Importante
+- O projeto ainda não possui módulo de administrador — ignore essa parte.
+- O foco está no fluxo **Cidadão → Coletor → Recicladora → Pontuação**.
+
+## Objetivo do Copilot
+> Ajudar o desenvolvedor a manter o código do projeto RecicleAí **simples, correto e fácil de evoluir**, revisando implementações e sugerindo melhorias sem complexidade desnecessária.
