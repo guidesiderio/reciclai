@@ -1,17 +1,14 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Recompensas</title>
-</head>
-<body>
-    <h1>Recompensas Disponíveis</h1>
-    <ul>
-        {% for reward in rewards %}
-            <li>
-                {{ reward.name }} - {{ reward.points_required }} pontos
-                <a href="{% url 'core:redeem_reward' reward.id %}">Resgatar</a>
-            </li>
-        {% endfor %}
-    </ul>
-</body>
-</html>
+{% extends 'base.html' %} {% block title %}Recompensas{% endblock %} {% block content %}
+<h1>Recompensas Disponíveis</h1>
+<ul class="list-group">
+  {% for reward in rewards %}
+  <li class="list-group-item d-flex justify-content-between align-items-center">
+    <div>
+      <strong>{{ reward.name }}</strong>
+      <div class="text-muted">{{ reward.points_required }} pontos</div>
+    </div>
+    <a class="btn btn-sm btn-primary" href="{% url 'core:redeem_reward' reward.id %}">Resgatar</a>
+  </li>
+  {% endfor %}
+</ul>
+{% endblock %}
