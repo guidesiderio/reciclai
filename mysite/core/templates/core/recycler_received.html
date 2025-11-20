@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Resíduos Recebidos{% endblock %}
+
+{% block content %}
+<h1>Resíduos Recebidos para Processamento</h1>
+
+{% if collections %}
+  <ul class="list-group">
+    {% for collection in collections %}
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        <div>
+          <strong>Tipo:</strong> {{ collection.residue.residue_type }}<br>
+          <strong>Localização:</strong> {{ collection.residue.location }}<br>
+          <strong>Cidadão:</strong> {{ collection.residue.citizen.username }}
+        </div>
+        
+        {% if collection.residue.status != 'F' %}
+          <a href="{% url 'core:recycler_process' collection.residue.id %}" class="btn btn-primary">
+            Processar Resíduo
+          </a>
+        {% else %}
+          <span class="badge badge-success">Processado</span>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+{% else %}
+  <p>Não há resíduos aguardando processamento no momento.</p>
+{% endif %}
+
+{% endblock %}
