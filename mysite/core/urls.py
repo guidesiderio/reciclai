@@ -4,11 +4,15 @@ from . import views
 app_name = 'core'
 
 urlpatterns = [
-    path('', views.index, name='index'),
+    # Rotas Públicas
+    path('', views.public_index, name='public_index'),
     path('signup/', views.signup, name='signup'),
+
+    # Rota de Dashboard (pós-login)
+    path('dashboard/', views.dashboard, name='dashboard'),
+
     # URLs do Cidadão
     path('residue/create/', views.residue_create, name='residue_create'),
-    path('collection/request/', views.collection_request, name='collection_request'),
     path('collection/status/', views.collection_status, name='collection_status'),
     path('points/', views.points_view, name='points_view'),
     path('rewards/', views.rewards_list, name='rewards_list'),

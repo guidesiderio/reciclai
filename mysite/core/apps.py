@@ -6,5 +6,6 @@ class CoreConfig(AppConfig):
     name = 'core'
 
     def ready(self):
-        # Import signals to ensure they are registered when the app is ready
-        import core.signals  # noqa: F401
+        # Desativado para centralizar a criação de perfil no formulário de cadastro
+        # import core.signals
+        pass

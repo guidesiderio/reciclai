@@ -117,9 +117,10 @@ STATIC_URL = 'static/'
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
-LOGIN_REDIRECT_URL = '/'
-LOGOUT_REDIRECT_URL = '/'
 LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'core:dashboard'
+LOGOUT_REDIRECT_URL = 'core:public_index'
+
 
 CSRF_TRUSTED_ORIGINS = [
     f"https://{os.environ.get('WEB_HOST')}"] if 'WEB_HOST' in os.environ else []
