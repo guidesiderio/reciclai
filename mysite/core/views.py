@@ -128,18 +128,26 @@ def accept_collection(request, collection_id):
     return redirect('core:collector_dashboard')
 
 @collector_required
-def update_collection_status(request, collection_id):
-    collection = get_object_or_404(Collection, id=collection_id, collector=request.user)
+def collection_transition(request, collection_id):
+    collection = get_object_or_404(Collection, id=collection_id)
+
+    # Garante que apenas o coletor responsável ou um coletor novo (para coletas 'SOLICITADA')
+    # possa acessar esta view.
+    if collection.status != 'SOLICITADA' and collection.collector != request.user:
+        messages.error(request, "Você não tem permissão para alterar o status desta coleta.")
+        return redirect('core:collector_dashboard')
+
     if request.method == 'POST':
-        form = CollectionStatusForm(request.POST, instance=collection, current_status=collection.status)
+        form = CollectionStatusForm(request.POST, instance=collection, user=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Status da coleta atualizado com sucesso.')
             return redirect('core:collector_dashboard')
     else:
-        form = CollectionStatusForm(instance=collection, current_status=collection.status)
+        form = CollectionStatusForm(instance=collection, user=request.user)
+        
     context = {'form': form, 'collection': collection}
-    return render(request, 'core/update_collection_status.html', context)
+    return render(request, 'core/collection_transition.html', context)
 
 # --- Fluxo da Recicladora ---
 

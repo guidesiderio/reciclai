@@ -18,7 +18,7 @@ urlpatterns = [
     # --- Fluxo do Coletor ---
     path('coletor/dashboard/', views.collector_dashboard, name='collector_dashboard'),
     path('coletor/coletas/<int:collection_id>/aceitar/', views.accept_collection, name='accept_collection'),
-    path('coletor/coletas/<int:collection_id>/atualizar/', views.update_collection_status, name='update_collection_status'),
+    path('coletor/coletas/<int:collection_id>/transicao/', views.collection_transition, name='collection_transition'),
 
     # --- Fluxo da Recicladora ---
     path('recicladora/dashboard/', views.recycler_dashboard, name='recycler_dashboard'),
