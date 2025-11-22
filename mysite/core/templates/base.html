@@ -16,6 +16,11 @@
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav ms-auto">
                     {% if user.is_authenticated %}
+                        {% if user.profile.user_type == 'C' %}
+                            <li class="nav-item">
+                                <a class="nav-link" href="{% url 'core:points_history' %}">Meus Pontos</a>
+                            </li>
+                        {% endif %}
                         <li class="nav-item">
                             <span class="navbar-text">Olá, {{ user.username }}!</span>
                         </li>
