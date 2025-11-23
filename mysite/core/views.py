@@ -113,7 +113,7 @@ def points_history(request):
     profile = request.user.profile
     transactions = PointsTransaction.objects.filter(user=request.user).order_by('-transaction_date')
     
-    context = {
+    context = { 
         'profile': profile,
         'transactions': transactions,
     }
@@ -226,7 +226,11 @@ def recycler_dashboard(request):
 @recycler_required
 @transaction.atomic
 def process_collection(request, collection_id):
-    collection = get_object_or_404(Collection, id=collection_id, status='ENTREGUE_RECICLADORA')
+    collection = get_object_or_404(
+        Collection.objects.select_related('residue__citizen__profile'),
+        id=collection_id,
+        status='ENTREGUE_RECICLADORA'
+    )
     
     if request.method == 'POST':
         residue = collection.residue
@@ -234,11 +238,6 @@ def process_collection(request, collection_id):
         
         # Define a quantidade de pontos a serem ganhos
         points_to_award = 10  # Exemplo: 10 pontos por coleta processada
-        
-        # Atualiza o status da coleta e do resíduo
-        collection.status = 'PROCESSADO'
-        collection.processed_at = timezone.now()
-        residue.status = 'PROCESSADO'
         
         # Adiciona os pontos ao perfil do cidadão
         citizen_profile.points += points_to_award
@@ -250,9 +249,12 @@ def process_collection(request, collection_id):
             description=f'Coleta de {residue.residue_type} processada.'
         )
         
+        # Atualiza o status da coleta
+        collection.status = 'PROCESSADO'
+        collection.processed_at = timezone.now()
+        
         # Salva todas as alterações
         collection.save()
-        residue.save()
         citizen_profile.save()
         
         messages.success(request, f'O resíduo "{residue.residue_type}" foi processado e {points_to_award} pontos foram concedidos ao cidadão.')
