@@ -1,103 +1,108 @@
 from django.test import TestCase, Client
 from django.urls import reverse
 from django.contrib.auth.models import User
-from .models import Residue, Profile, Collection
+from .models import Residue, Profile, Collection, Reward
 
+class UserCreationTest(TestCase):
+    def test_user_and_profile_creation(self):
+        user = User.objects.create_user(username='testuser', password='password')
+        self.assertIsNotNone(user.profile)
+        self.assertEqual(user.profile.user_type, 'C')
 
-class PontuacaoTest(TestCase):
+class CitizenFlowTest(TestCase):
     def setUp(self):
         self.client = Client()
-        self.user = User.objects.create_user(
-            username='testuser', password='password')
-        self.profile, _ = Profile.objects.get_or_create(
-            user=self.user, defaults={'user_type': 'C'})
-        self.residue = Residue.objects.create(
-            citizen=self.user,
-            residue_type='Plástico',
-            weight=1.5,
-            location='Rua Teste, 123'
-        )
+        self.user = User.objects.create_user(username='citizen', password='password')
+        self.user.profile.user_type = 'C'
+        self.user.profile.save()
+        self.client.login(username='citizen', password='password')
 
-    def test_pontuacao_apos_processamento(self):
-        self.client.login(username='testuser', password='password')
-        response = self.client.post(
-            reverse(
-                'core:recycler_process',
-                args=[
-                    self.residue.id]))
-        self.assertEqual(response.status_code, 302)
-        self.profile.refresh_from_db()
-        self.assertEqual(self.profile.points, 10)
+    def test_create_residue_and_request_collection(self):
+        self.client.post(reverse('core:residue_create'), {
+            'residue_type': 'Garrafa PET',
+            'units': 10,
+            'location': 'Rua dos Testes, 123'
+        })
+        residue = Residue.objects.get(citizen=self.user)
+        self.assertEqual(residue.status, 'AGUARDANDO_SOLICITACAO_DE_COLETA')
+
+        self.client.post(reverse('core:request_collection', args=[residue.id]))
+        residue.refresh_from_db()
+        self.assertEqual(residue.status, 'COLETA_SOLICITADA')
+        self.assertIsNotNone(residue.collection)
+        self.assertEqual(residue.collection.status, 'SOLICITADA')
+
+class CollectorFlowTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.citizen = User.objects.create_user(username='citizen', password='password')
+        self.collector = User.objects.create_user(username='collector', password='password')
+        self.collector.profile.user_type = 'L'
+        self.collector.profile.save()
+        self.residue = Residue.objects.create(citizen=self.citizen, residue_type='Papelão', weight=5, location='Av. Brasil')
+        self.collection = Collection.objects.create(residue=self.residue)
+        self.client.login(username='collector', password='password')
+
+    def test_accept_collection(self):
+        self.client.post(reverse('core:accept_collection', args=[self.collection.id]))
+        self.collection.refresh_from_db()
+        self.assertEqual(self.collection.status, 'ATRIBUIDA')
+        self.assertEqual(self.collection.collector, self.collector)
+
+    def test_update_collection_status(self):
+        self.collection.collector = self.collector
+        self.collection.status = 'ATRIBUIDA'
+        self.collection.save()
+
+        self.client.post(reverse('core:collection_transition', args=[self.collection.id]), {'status': 'EM_ROTA'})
+        self.collection.refresh_from_db()
+        self.assertEqual(self.collection.status, 'EM_ROTA')
+
+        self.client.post(reverse('core:collection_transition', args=[self.collection.id]), {'status': 'COLETADA'})
+        self.collection.refresh_from_db()
+        self.assertEqual(self.collection.status, 'COLETADA')
+
+        self.client.post(reverse('core:collection_transition', args=[self.collection.id]), {'status': 'ENTREGUE_RECICLADORA'})
+        self.collection.refresh_from_db()
+        self.assertEqual(self.collection.status, 'ENTREGUE_RECICLADORA')
+
+class RecyclerFlowTest(TestCase):
+    def setUp(self):
+        self.client = Client()
+        self.citizen = User.objects.create_user(username='citizen', password='password')
+        self.recycler = User.objects.create_user(username='recycler', password='password')
+        self.recycler.profile.user_type = 'R'
+        self.recycler.profile.save()
+        self.residue = Residue.objects.create(citizen=self.citizen, residue_type='Vidro', units=20, location='Praça da Sé')
+        self.collection = Collection.objects.create(residue=self.residue, status='ENTREGUE_RECICLADORA')
+        self.client.login(username='recycler', password='password')
+
+    def test_process_collection_and_award_points(self):
+        self.client.post(reverse('core:process_collection', args=[self.collection.id]))
+        self.collection.refresh_from_db()
+        self.assertEqual(self.collection.status, 'PROCESSADO')
         self.residue.refresh_from_db()
-        self.assertEqual(self.residue.status, 'F')
+        self.assertEqual(self.residue.status, 'PROCESSADO')
+        self.citizen.profile.refresh_from_db()
+        self.assertEqual(self.citizen.profile.points, 10)
 
-    def test_recycler_process_creates_profile_when_missing(self):
-        """Se o usuário cidadão não tiver Profile, o processo deve criar e creditar pontos."""
-        # Criar um usuário sem Profile
-        user_no_profile = User.objects.create_user(
-            username='semprofile', password='password')
-        residue = Residue.objects.create(
-            citizen=user_no_profile,
-            residue_type='Metal',
-            weight=2.0,
-            location='Rua Sem Profile, 1'
-        )
-
-        # Login como recicladora (poderia ser qualquer usuário autenticado)
-        recicladora = User.objects.create_user(
-            username='rec', password='password')
-        self.client.login(username='rec', password='password')
-        response = self.client.post(
-            reverse('core:recycler_process', args=[residue.id]))
-        self.assertEqual(response.status_code, 302)
-
-        # Verificar que o Profile foi criado e recebeu pontos
-        profile = Profile.objects.get(user=user_no_profile)
-        self.assertEqual(profile.points, 10)
-        residue.refresh_from_db()
-        self.assertEqual(residue.status, 'F')
-
-
-class FluxoCompletoTest(TestCase):
+class PointsAndRewardsTest(TestCase):
     def setUp(self):
         self.client = Client()
-        self.cidadao = User.objects.create_user(
-            username='cidadao', password='password')
-        self.coletor = User.objects.create_user(
-            username='coletor', password='password')
-        self.recicladora = User.objects.create_user(
-            username='recicladora', password='password')
-        self.profile_cidadao, _ = Profile.objects.get_or_create(
-            user=self.cidadao, defaults={'user_type': 'C'})
+        self.user = User.objects.create_user(username='citizen', password='password')
+        self.user.profile.points = 100
+        self.user.profile.save()
+        self.reward = Reward.objects.create(name='Voucher', points_required=50)
+        self.client.login(username='citizen', password='password')
 
-    def test_fluxo_completo(self):
-        # 1. Cidadão cria resíduo
-        self.client.login(username='cidadao', password='password')
-        residue = Residue.objects.create(
-            citizen=self.cidadao,
-            residue_type='Vidro',
-            units=10,
-            location='Rua Nova, 456'
-        )
+    def test_redeem_reward(self):
+        self.client.post(reverse('core:redeem_reward', args=[self.reward.id]))
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.points, 50)
 
-        # 2. Coletor aceita a coleta
-        self.client.login(username='coletor', password='password')
-        collection = Collection.objects.create(
-            residue=residue, collector=self.coletor)
-        collection.status = 'C'  # Coletada
-        collection.save()
-
-        # 3. Recicladora processa o resíduo
-        self.client.login(username='recicladora', password='password')
-        response = self.client.post(
-            reverse(
-                'core:recycler_process',
-                args=[
-                    residue.id]))
-
-        # 4. Verificar se os pontos foram creditados
-        self.assertEqual(response.status_code, 302)
-        self.profile_cidadao.refresh_from_db()
-        self.assertEqual(self.profile_cidadao.points, 10)
-        residue.refresh_from_db()
-        self.assertEqual(residue.status, 'F')
+    def test_insufficient_points(self):
+        self.user.profile.points = 20
+        self.user.profile.save()
+        self.client.post(reverse('core:redeem_reward', args=[self.reward.id]))
+        self.user.profile.refresh_from_db()
+        self.assertEqual(self.user.profile.points, 20)
